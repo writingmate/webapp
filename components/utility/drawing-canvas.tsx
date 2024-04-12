@@ -100,8 +100,8 @@ export const DrawingCanvas: FC<DrawingCanvasProps> = ({ imageItem }) => {
       onMouseMove={draw}
       onMouseLeave={finishDrawing}
       style={{
-        maxHeight: "67vh",
-        maxWidth: "67vw"
+        maxHeight: "80vh",
+        maxWidth: "80vw"
       }}
     />
   )

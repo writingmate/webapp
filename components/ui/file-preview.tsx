@@ -42,8 +42,8 @@ export const FilePreview: FC<FilePreviewProps> = ({
                 width={2000}
                 height={2000}
                 style={{
-                  maxHeight: "67vh",
-                  maxWidth: "67vw"
+                  maxHeight: "80vh",
+                  maxWidth: "80vw"
                 }}
               />
             )
