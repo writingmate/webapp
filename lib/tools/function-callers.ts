@@ -212,8 +212,6 @@ export class AnthropicFunctionCaller implements FunctionCaller {
       return message
     })
 
-    console.log(anthropicMessages[1].content[1])
-
     const response = await this.client.messages.create({
       model: model,
       tools: anthropicTools,

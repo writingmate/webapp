@@ -5,7 +5,7 @@
 import { ChatbotUIContext } from "@/context/context"
 import { getProfileByUserId } from "@/db/profile"
 import { getWorkspaceImageFromStorage } from "@/db/storage/workspace-images"
-import { getWorkspacesByUserId } from "@/db/workspaces"
+import { getWorkspaceById, getWorkspacesByUserId } from "@/db/workspaces"
 import { convertBlobToBase64 } from "@/lib/blob-to-b64"
 import {
   fetchHostedModels,
@@ -19,6 +19,7 @@ import {
   ChatMessage,
   ChatSettings,
   LLM,
+  LLMID,
   MessageImage,
   OpenRouterLLM,
   WorkspaceImage
@@ -28,6 +29,12 @@ import { VALID_ENV_KEYS } from "@/types/valid-keys"
 import { useRouter } from "next/navigation"
 import { FC, useEffect, useState } from "react"
 import { isMobileScreen } from "@/lib/mobile"
+import { getPublicAssistants } from "@/db/assistants"
+import { getPublicTools } from "@/db/tools"
+import { getPlatformTools } from "@/db/platform-tools"
+import { onlyUniqueById } from "@/lib/utils"
+import { getAssistantPublicImageUrl } from "@/db/storage/assistant-images"
+import Loading from "@/app/loading"
 
 interface GlobalStateProps {
   children: React.ReactNode
@@ -51,6 +58,7 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   const [tools, setTools] = useState<Tables<"tools">[]>([])
   const [platformTools, setPlatformTools] = useState<Tables<"tools">[]>([])
   const [workspaces, setWorkspaces] = useState<Tables<"workspaces">[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   // MODELS STORE
   const [envKeyMap, setEnvKeyMap] = useState<Record<string, VALID_ENV_KEYS>>({})
@@ -197,49 +205,167 @@ export const GlobalState: FC<GlobalStateProps> = ({ children }) => {
   > => {
     const session = (await supabase.auth.getSession()).data.session
 
-    if (session) {
-      const user = session.user
+    if (!session) {
+      setLoading(false)
+      return undefined
+    }
+    const user = session.user
 
-      const profile = await getProfileByUserId(user.id)
+    const profile = await getProfileByUserId(user.id)
 
-      setProfile(profile)
+    setProfile(profile)
 
-      if (!profile?.has_onboarded) {
-        return profile
-      }
-
-      const workspaces = await getWorkspacesByUserId(user.id)
-      setWorkspaces(workspaces)
-
-      for (const workspace of workspaces) {
-        let workspaceImageUrl = ""
-
-        if (workspace.image_path) {
-          workspaceImageUrl =
-            (await getWorkspaceImageFromStorage(workspace.image_path)) || ""
-        }
-
-        if (workspaceImageUrl) {
-          const response = await fetch(workspaceImageUrl)
-          const blob = await response.blob()
-          const base64 = await convertBlobToBase64(blob)
-
-          setWorkspaceImages(prev => [
-            ...prev,
-            {
-              workspaceId: workspace.id,
-              path: workspace.image_path,
-              base64: base64,
-              url: workspaceImageUrl
-            }
-          ])
-        }
-      }
-
+    if (!profile?.has_onboarded) {
       return profile
     }
 
-    return undefined
+    const workspaces = await getWorkspacesByUserId(user.id)
+    setWorkspaces(workspaces)
+    setSelectedWorkspace(workspaces?.[0])
+
+    for (const workspace of workspaces) {
+      let workspaceImageUrl = ""
+
+      if (workspace.image_path) {
+        workspaceImageUrl =
+          (await getWorkspaceImageFromStorage(workspace.image_path)) || ""
+      }
+
+      if (workspaceImageUrl) {
+        const response = await fetch(workspaceImageUrl)
+        const blob = await response.blob()
+        const base64 = await convertBlobToBase64(blob)
+
+        setWorkspaceImages(prev => [
+          ...prev,
+          {
+            workspaceId: workspace.id,
+            path: workspace.image_path,
+            base64: base64,
+            url: workspaceImageUrl
+          }
+        ])
+      }
+    }
+
+    await fetchWorkspaceData(workspaces.find(w => w.is_home)?.id as string)
+    setUserInput("")
+    setChatMessages([])
+    setSelectedChat(null)
+    setIsGenerating(false)
+    setFirstTokenReceived(false)
+    setChatFiles([])
+    setChatImages([])
+    setNewMessageFiles([])
+    setNewMessageImages([])
+    setShowFilesDisplay(false)
+
+    return profile
+  }
+
+  const fetchWorkspaceData = async (workspaceId: string) => {
+    setLoading(true)
+
+    try {
+      const workspace = await getWorkspaceById(workspaceId)
+      if (!workspace) {
+        router.push("/")
+        return
+      }
+      setSelectedWorkspace(workspace)
+
+      const [publicAssistantData, publicToolData, platformToolData] =
+        await Promise.all([
+          getPublicAssistants(),
+          getPublicTools(),
+          getPlatformTools()
+        ])
+
+      setAssistants(
+        [...workspace.assistants, ...publicAssistantData].filter(onlyUniqueById)
+      )
+      setChats(workspace.chats)
+      setFolders(workspace.folders)
+      setFiles(workspace.files)
+      setPrompts(workspace.prompts)
+      setTools(
+        [...platformToolData, ...workspace.tools, ...publicToolData].filter(
+          onlyUniqueById
+        )
+      )
+      setPlatformTools(platformToolData)
+      setModels(workspace.models)
+
+      const parallelize = async (array: any, callback: any) => {
+        const promises = array.map((item: any) => callback(item))
+        return Promise.all(promises)
+      }
+
+      await parallelize(
+        [...workspace.assistants, ...publicAssistantData],
+        async (assistant: any) => {
+          let url = assistant.image_path
+            ? getAssistantPublicImageUrl(assistant.image_path)
+            : ""
+
+          if (url) {
+            // const response = await fetch(url)
+            // const blob = await response.blob()
+            // const base64 = await convertBlobToBase64(blob)
+
+            setAssistantImages(prev => [
+              ...prev,
+              {
+                assistantId: assistant.id,
+                path: assistant.image_path,
+                base64: "",
+                url
+              }
+            ])
+          } else {
+            setAssistantImages(prev => [
+              ...prev,
+              {
+                assistantId: assistant.id,
+                path: assistant.image_path,
+                base64: "",
+                url
+              }
+            ])
+          }
+        }
+      )
+
+      setLoading(false)
+
+      setChatSettings({
+        model: (chatSettings?.model ||
+          workspace?.default_model ||
+          "gpt-3.5-turbo-0125") as LLMID,
+        prompt:
+          // chatSettings?.prompt ||
+          workspace?.default_prompt ||
+          "You are a friendly, helpful AI assistant.",
+        temperature:
+          // chatSettings?.temperature ||
+          workspace?.default_temperature || 0.5,
+        contextLength:
+          // chatSettings?.contextLength ||
+          workspace?.default_context_length || 4096,
+        includeProfileContext:
+          // chatSettings?.includeProfileContext ||
+          workspace?.include_profile_context || true,
+        includeWorkspaceInstructions:
+          // chatSettings?.includeWorkspaceInstructions ||
+          workspace?.include_workspace_instructions || true,
+        embeddingsProvider:
+          // chatSettings?.embeddingsProvider ||
+          (workspace?.embeddings_provider as "openai" | "local") || "openai"
+      })
+    } catch (error) {
+      console.error(error)
+      router.push("/")
+    }
   }
 
   return (

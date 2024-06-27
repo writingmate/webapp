@@ -1,13 +1,10 @@
 import { ChatbotUIContext } from "@/context/context"
-import { FC, useContext } from "react"
+import { FC, useContext, useEffect } from "react"
 import { AssistantPicker } from "./assistant-picker"
 import { usePromptAndCommand } from "./chat-hooks/use-prompt-and-command"
 import { FilePicker } from "./file-picker"
 import { PromptPicker } from "./prompt-picker"
-import { ToolPicker } from "./tool-picker"
 import { cn } from "@/lib/utils"
-import { MessageHistoryPicker } from "@/components/message-history-picker"
-import { ChatbotUIChatContext } from "@/context/chat"
 
 interface ChatCommandInputProps {}
 
@@ -15,17 +12,18 @@ export const ChatCommandInput: FC<ChatCommandInputProps> = ({}) => {
   const {
     newMessageFiles,
     chatFiles,
-    slashCommand,
     isFilePickerOpen,
     setIsFilePickerOpen,
     hashtagCommand,
-    focusPrompt,
     focusFile,
     selectedAssistant,
     isPromptPickerOpen,
     isToolPickerOpen,
     isAssistantPickerOpen,
-    isMessageHistoryPickerOpen
+    isMessageHistoryPickerOpen,
+    setIsPromptPickerOpen,
+    setIsToolPickerOpen,
+    setIsAssistantPickerOpen
   } = useContext(ChatbotUIContext)
 
   const { handleSelectUserFile, handleSelectUserCollection } =
@@ -33,21 +31,49 @@ export const ChatCommandInput: FC<ChatCommandInputProps> = ({}) => {
 
   const isOpen =
     isPromptPickerOpen ||
-    isToolPickerOpen ||
+    // isToolPickerOpen ||
     isAssistantPickerOpen ||
     isFilePickerOpen ||
     isMessageHistoryPickerOpen
 
+  useEffect(() => {
+    // only one picker can be open at a time
+    if (isFilePickerOpen) {
+      setIsPromptPickerOpen(false)
+      setIsToolPickerOpen(false)
+      setIsAssistantPickerOpen(false)
+    }
+    if (isPromptPickerOpen) {
+      setIsFilePickerOpen(false)
+      setIsToolPickerOpen(false)
+      setIsAssistantPickerOpen(false)
+    }
+    if (isToolPickerOpen) {
+      setIsFilePickerOpen(false)
+      setIsPromptPickerOpen(false)
+      setIsAssistantPickerOpen(false)
+    }
+    if (isAssistantPickerOpen) {
+      setIsFilePickerOpen(false)
+      setIsPromptPickerOpen(false)
+      setIsToolPickerOpen(false)
+    }
+  }, [
+    isFilePickerOpen,
+    isPromptPickerOpen,
+    isToolPickerOpen,
+    isAssistantPickerOpen
+  ])
+
   return (
     <div
       className={cn(
-        "bg-background absolute bottom-[76px] left-0 max-h-[300px] w-full overflow-y-auto rounded-xl border dark:border-none",
-        selectedAssistant && "bottom-[106px]",
+        "bg-background border-input left-0 max-h-[310px] w-full overflow-y-auto rounded-lg border-[1px] shadow-lg dark:border-none dark:shadow-none",
+        selectedAssistant && "bottom-[100px]",
         isOpen ? "block" : "hidden"
       )}
     >
       <PromptPicker />
-
       <FilePicker
         isOpen={isFilePickerOpen}
         searchQuery={hashtagCommand}
@@ -60,7 +86,7 @@ export const ChatCommandInput: FC<ChatCommandInputProps> = ({}) => {
         onSelectCollection={handleSelectUserCollection}
         isFocused={focusFile}
       />
-      <ToolPicker />
+      {/*<ToolPicker />*/}
 
       <AssistantPicker />
     </div>

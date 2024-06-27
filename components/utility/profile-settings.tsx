@@ -1,10 +1,5 @@
 import { ChatbotUIContext } from "@/context/context"
-import {
-  PROFILE_CONTEXT_MAX,
-  PROFILE_DISPLAY_NAME_MAX,
-  PROFILE_USERNAME_MAX,
-  PROFILE_USERNAME_MIN
-} from "@/db/limits"
+import { PROFILE_CONTEXT_MAX, PROFILE_DISPLAY_NAME_MAX } from "@/db/limits"
 import { updateProfile } from "@/db/profile"
 import { uploadProfileImage } from "@/db/storage/profile-images"
 import { exportLocalStorageAsJSON } from "@/lib/export-old-data"
@@ -14,18 +9,16 @@ import { supabase } from "@/lib/supabase/browser-client"
 import { cn } from "@/lib/utils"
 import { OpenRouterLLM } from "@/types"
 import {
-  IconCircleCheckFilled,
-  IconCircleXFilled,
   IconFileDownload,
   IconLoader2,
   IconLogout,
+  IconSettings,
   IconUser
 } from "@tabler/icons-react"
-import Image from "next/image"
-import { useRouter, redirect } from "next/navigation"
-import { FC, useCallback, useContext, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { FC, useContext, useRef, useState } from "react"
 import { toast } from "sonner"
-import { SIDEBAR_ICON_SIZE } from "../sidebar/sidebar-switcher"
+import { SIDEBAR_ICON_SIZE } from "../sidebar2/sidebar-top-level-links"
 import { Button } from "../ui/button"
 import ImagePicker from "../ui/image-picker"
 import { Input } from "../ui/input"
@@ -42,10 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { TextareaAutosize } from "../ui/textarea-autosize"
 import { WithTooltip } from "../ui/with-tooltip"
 import { ThemeSwitcher } from "./theme-switcher"
-import {
-  createBillingPortalSession,
-  redirectToBillingPortal
-} from "@/actions/stripe"
+import { redirectToBillingPortal } from "@/actions/stripe"
 import { PLAN_FREE } from "@/lib/stripe/config"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
@@ -73,7 +63,7 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
   const [displayName, setDisplayName] = useState(profile?.display_name || "")
   const [username, setUsername] = useState(profile?.username || "")
   const [usernameAvailable, setUsernameAvailable] = useState(true)
-  const [loadingUsername, setLoadingUsername] = useState(false)
+  // const [loadingUsername, setLoadingUsername] = useState(false)
   const [profileImageSrc, setProfileImageSrc] = useState(
     profile?.image_url || ""
   )
@@ -275,49 +265,49 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
     }
   }
 
-  const checkUsernameAvailability = useCallback(
-    debounce(async (username: string) => {
-      if (!username) return
-
-      if (username.length < PROFILE_USERNAME_MIN) {
-        setUsernameAvailable(false)
-        return
-      }
-
-      if (username.length > PROFILE_USERNAME_MAX) {
-        setUsernameAvailable(false)
-        return
-      }
-
-      const usernameRegex = /^[a-zA-Z0-9_]+$/
-      if (!usernameRegex.test(username)) {
-        setUsernameAvailable(false)
-        alert(
-          "Username must be letters, numbers, or underscores only - no other characters or spacing allowed."
-        )
-        return
-      }
-
-      setLoadingUsername(true)
-
-      const response = await fetch(`/api/username/available`, {
-        method: "POST",
-        body: JSON.stringify({ username })
-      })
-
-      const data = await response.json()
-      const isAvailable = data.isAvailable
-
-      setUsernameAvailable(isAvailable)
-
-      if (username === profile?.username) {
-        setUsernameAvailable(true)
-      }
-
-      setLoadingUsername(false)
-    }, 500),
-    []
-  )
+  // const checkUsernameAvailability = useCallback(
+  //   debounce(async (username: string) => {
+  //     if (!username) return
+  //
+  //     if (username.length < PROFILE_USERNAME_MIN) {
+  //       setUsernameAvailable(false)
+  //       return
+  //     }
+  //
+  //     if (username.length > PROFILE_USERNAME_MAX) {
+  //       setUsernameAvailable(false)
+  //       return
+  //     }
+  //
+  //     const usernameRegex = /^[a-zA-Z0-9_]+$/
+  //     if (!usernameRegex.test(username)) {
+  //       setUsernameAvailable(false)
+  //       alert(
+  //         "Username must be letters, numbers, or underscores only - no other characters or spacing allowed."
+  //       )
+  //       return
+  //     }
+  //
+  //     setLoadingUsername(true)
+  //
+  //     const response = await fetch(`/api/username/available`, {
+  //       method: "POST",
+  //       body: JSON.stringify({ username })
+  //     })
+  //
+  //     const data = await response.json()
+  //     const isAvailable = data.isAvailable
+  //
+  //     setUsernameAvailable(isAvailable)
+  //
+  //     if (username === profile?.username) {
+  //       setUsernameAvailable(true)
+  //     }
+  //
+  //     setLoadingUsername(false)
+  //   }, 500),
+  //   []
+  // )
 
   function resetToDefaults() {
     setFilesCommand("#")
@@ -337,13 +327,37 @@ export const ProfileSettings: FC<ProfileSettingsProps> = ({}) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Avatar>
-          <AvatarImage src={profile.image_url!} height={34} width={34} />
-          <AvatarFallback>
-            <IconUser size={SIDEBAR_ICON_SIZE} />
-          </AvatarFallback>
-        </Avatar>
+      <SheetTrigger
+        className={
+          "flex w-full items-center justify-between border-t pt-2 text-sm"
+        }
+      >
+        <div
+          className={
+            "hover:bg-accent/60 flex h-[40px] w-full items-center justify-between space-x-2 rounded-md px-2 text-left"
+          }
+        >
+          <div className={"flex items-center"}>
+            <Avatar className={"mr-2 size-7"}>
+              <AvatarImage
+                src={profile.image_url!}
+                height={SIDEBAR_ICON_SIZE}
+                width={SIDEBAR_ICON_SIZE}
+              />
+              <AvatarFallback>
+                <IconUser size={SIDEBAR_ICON_SIZE} />
+              </AvatarFallback>
+            </Avatar>
+
+            {profile.display_name}
+          </div>
+
+          <IconSettings
+            stroke={1.5}
+            size={20}
+            className={"text-foreground/50"}
+          />
+        </div>
       </SheetTrigger>
 
       <SheetContent

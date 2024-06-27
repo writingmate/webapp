@@ -60,7 +60,7 @@ export const QuickSettingOption: FC<QuickSettingOptionProps> = ({
       </div>
 
       <div className="ml-4 flex grow flex-col space-y-1">
-        <div className="text-md font-bold">{item.name}</div>
+        <div className="text-md font-semibold">{item.name}</div>
 
         {item.description && (
           <div className="line-clamp-2 text-ellipsis text-sm font-light">

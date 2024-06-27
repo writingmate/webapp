@@ -10,7 +10,6 @@ import { LLMID } from "@/types"
 import { IconChevronDown, IconRobotFace } from "@tabler/icons-react"
 import Image from "next/image"
 import { FC, useContext, useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { ModelIcon } from "../models/model-icon"
 import { Button } from "../ui/button"
 import {
@@ -28,8 +27,6 @@ import { ChatbotUIChatContext } from "@/context/chat"
 interface QuickSettingsProps {}
 
 export const QuickSettings: FC<QuickSettingsProps> = ({}) => {
-  const { t } = useTranslation()
-
   useHotkey("p", () => setIsOpen(prevState => !prevState))
 
   const {
@@ -208,13 +205,13 @@ export const QuickSettings: FC<QuickSettingsProps> = ({}) => {
           ) : (
             <>
               <div className="overflow-hidden text-ellipsis">
-                {isModified &&
-                  (selectedPreset || selectedAssistant) &&
-                  "Modified "}
+                {/*{isModified &&*/}
+                {/*  (selectedPreset || selectedAssistant) &&*/}
+                {/*  "Modified "}*/}
 
                 {selectedPreset?.name ||
                   selectedAssistant?.name ||
-                  t("Assistants")}
+                  "Assistants"}
               </div>
 
               <IconChevronDown className="ml-1" />

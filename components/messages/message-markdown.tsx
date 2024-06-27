@@ -4,12 +4,12 @@ import remarkMath from "remark-math"
 import { MessageCodeBlock } from "./message-codeblock"
 import { MessageMarkdownMemoized } from "./message-markdown-memoized"
 import { defaultUrlTransform } from "react-markdown"
-import { FilePreview } from "@/components/ui/file-preview"
 import { ImageWithPreview } from "@/components/image/image-with-preview"
-import { sr } from "date-fns/locale"
+import { cn } from "@/lib/utils"
 
 interface MessageMarkdownProps {
   content: string
+  className?: string
 }
 
 function urlTransform(url: string) {
@@ -19,11 +19,16 @@ function urlTransform(url: string) {
   return defaultUrlTransform(url)
 }
 
-export const MessageMarkdown: FC<MessageMarkdownProps> = ({ content }) => {
+export const MessageMarkdown: FC<MessageMarkdownProps> = ({
+  className,
+  content
+}) => {
   return (
     <MessageMarkdownMemoized
-      className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 min-h-[40px] min-w-full space-y-6 break-words"
-      // remarkPlugins={[remarkGfm, remarkMath]}
+      className={cn(
+        "prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 min-h-[40px] min-w-full space-y-6 break-words",
+        className
+      )}
       remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
       urlTransform={urlTransform}
       components={{

@@ -144,7 +144,7 @@ export const ModelSelectChat: FC<ModelSelectProps> = ({
         disabled={allModels.length === 0}
       >
         {allModels.length === 0 ? (
-          <div className="rounded text-sm font-bold">
+          <div className="rounded text-sm font-semibold">
             Unlock models by entering API keys in your profile settings.
           </div>
         ) : (

@@ -5,10 +5,8 @@ import type { Stripe } from "stripe";
 import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { getOrCreateCustomer } from "@/lib/stripe/get-or-create-customer";
-import { STRIPE_TRIAL_PERIOD_DAYS, PLANS } from "@/lib/stripe/config";
+import { PLANS } from "@/lib/stripe/config";
 import { redirect } from "next/navigation";
-import { getProfileByUserId } from "@/db/profile";
-import { supabase } from "@/lib/supabase/browser-client";
 import { getServerProfile } from "@/lib/server/server-chat-helpers";
 
 export async function createCheckoutSession(

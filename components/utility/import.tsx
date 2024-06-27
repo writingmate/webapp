@@ -9,7 +9,7 @@ import { createTools } from "@/db/tools"
 import { IconUpload, IconX } from "@tabler/icons-react"
 import { FC, useContext, useRef, useState } from "react"
 import { toast } from "sonner"
-import { SIDEBAR_ICON_SIZE } from "../sidebar/sidebar-switcher"
+import { SIDEBAR_ICON_SIZE } from "../sidebar2/sidebar-top-level-links"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import {
@@ -225,7 +225,7 @@ export const Import: FC<ImportProps> = ({}) => {
             onKeyDown={handleKeyDown}
           >
             <DialogHeader>
-              <div className="text-2xl font-bold">Import Data</div>
+              <div className="text-2xl font-semibold">Import Data</div>
 
               <DialogDescription>
                 Import data from a JSON file(s).

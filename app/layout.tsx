@@ -72,42 +72,18 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content"
 }
 
-const i18nNamespaces = ["translation"]
-
 export default async function RootLayout({
   children,
   params: { locale }
 }: RootLayoutProps) {
-  const cookieStore = cookies()
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        }
-      }
-    }
-  )
-  const session = (await supabase.auth.getSession()).data.session
-
-  const { t, resources } = await initTranslations(locale, i18nNamespaces)
-
   return (
     <html lang="en" suppressHydrationWarning className={"h-full"}>
       <body className={font.className + " h-full antialiased"}>
         <Providers attribute="class" defaultTheme="light">
-          {/*<TranslationsProvider*/}
-          {/*  namespaces={i18nNamespaces}*/}
-          {/*  locale={locale}*/}
-          {/*  resources={resources}*/}
-          {/*>*/}
           <Toaster richColors position="top-center" duration={3000} />
-          <div className="bg-background text-foreground flex h-full flex-col items-center sm:h-screen">
+          <div className="text-foreground flex h-full flex-col items-center sm:h-screen">
             <GlobalState>{children}</GlobalState>
           </div>
-          {/*</TranslationsProvider>*/}
         </Providers>
         {process.env.NODE_ENV === "production" && (
           <>

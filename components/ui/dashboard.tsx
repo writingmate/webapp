@@ -1,9 +1,6 @@
 "use client"
 
-import { Sidebar } from "@/components/sidebar/sidebar"
-import { SidebarSwitcher } from "@/components/sidebar/sidebar-switcher"
 import { Button } from "@/components/ui/button"
-import { Tabs } from "@/components/ui/tabs"
 import useHotkey from "@/lib/hooks/use-hotkey"
 import { cn } from "@/lib/utils"
 import { ContentType } from "@/types"
@@ -13,10 +10,10 @@ import { FC, useState, useContext } from "react"
 import { useSelectFileHandler } from "../chat/chat-hooks/use-select-file-handler"
 import { CommandK } from "../utility/command-k"
 import { PlanPicker } from "@/components/upgrade/plan-picker"
-import { useTheme } from "next-themes"
 import { ChatbotUIContext } from "@/context/context"
+import { Sidebar2 } from "@/components/sidebar2/sidebar"
 
-export const SIDEBAR_WIDTH = 350
+export const SIDEBAR_WIDTH = 300
 
 interface DashboardProps {
   children: React.ReactNode
@@ -25,11 +22,8 @@ interface DashboardProps {
 export const Dashboard: FC<DashboardProps> = ({ children }) => {
   useHotkey("s", () => setShowSidebar(prevState => !prevState))
 
-  const pathname = usePathname()
-  const router = useRouter()
   const searchParams = useSearchParams()
   const tabValue = searchParams.get("tab") || "chats"
-  const { theme } = useTheme()
 
   const { handleSelectDeviceFile } = useSelectFileHandler()
 
@@ -54,7 +48,7 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
 
   const handleDragEnter = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault()
-    setIsDragging(true)
+    setIsDragging(event.dataTransfer.files?.length > 0)
   }
 
   const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
@@ -75,7 +69,6 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
     <div className="flex size-full">
       <CommandK />
       <PlanPicker />
-
       <Button
         className={cn(
           "absolute left-[4px] top-[50%] z-10 size-[32px] cursor-pointer"
@@ -102,22 +95,17 @@ export const Dashboard: FC<DashboardProps> = ({ children }) => {
           width: showSidebar ? `${SIDEBAR_WIDTH}px` : "0px"
         }}
       >
-        <Tabs
-          className={cn("h-full", showSidebar ? "flex" : "hidden")}
-          value={contentType}
-          onValueChange={tabValue => {
-            setContentType(tabValue as ContentType)
-            router.replace(`${pathname}?tab=${tabValue}`)
-          }}
-        >
-          <SidebarSwitcher onContentTypeChange={setContentType} />
-
-          <Sidebar contentType={contentType} showSidebar={showSidebar} />
-        </Tabs>
+        {showSidebar && (
+          <Sidebar2
+            contentType={contentType}
+            onContentTypeChange={setContentType}
+            showSidebar={showSidebar}
+          />
+        )}
       </div>
 
       <div
-        className="bg-muted/50 flex grow flex-col"
+        className="bg-muted/50 flex h-full grow flex-col overflow-y-auto"
         onDrop={onFileDrop}
         onDragOver={onDragOver}
         onDragEnter={handleDragEnter}

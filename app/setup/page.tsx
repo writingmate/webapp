@@ -85,6 +85,7 @@ export default function SetupPage() {
         }
       }
     })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function redirectToHome(profile?: Tables<"profiles">) {
@@ -118,7 +119,7 @@ export default function SetupPage() {
     const workspaceId = await getHomeWorkspaceByUserId(session.user.id)
 
     // TODO: this should be a redirect
-    window.location.href = window.location.origin + `/${workspaceId}/chat`
+    window.location.href = window.location.origin + `/chat`
     // router.push(`/${workspaceId}/chat`)
   }
 

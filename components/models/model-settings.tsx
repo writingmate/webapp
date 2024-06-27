@@ -50,7 +50,6 @@ export const DEFAULT_MODEL_VISIBILITY: Record<LLMID, boolean> = {
   "mistral-tiny": false,
   "mistral-small": false,
   "mistral-medium": false,
-  // "llama2-70b-4096": false,
   "pplx-7b-online": false,
   "pplx-70b-online": false,
   "pplx-7b-chat": false,

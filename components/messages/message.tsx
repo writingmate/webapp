@@ -369,20 +369,26 @@ export const Message: FC<MessageProps> = ({
                 switch (toolInUse) {
                   case "none":
                     return (
-                      <IconCircleFilled className="animate-pulse" size={20} />
+                      <div
+                        className={
+                          "bg-foreground flex size-3 items-center justify-center rounded-full"
+                        }
+                      >
+                        <IconCircleFilled className="animate-ping" size={20} />
+                      </div>
                     )
                   case "retrieval":
                     return (
-                      <div className="flex animate-pulse items-center space-x-2">
-                        <IconFileText size={20} />
+                      <div className="flex animate-ping items-center space-x-2">
+                        <IconFileText stroke={1.5} size={20} />
 
                         <div>Searching files...</div>
                       </div>
                     )
                   default:
                     return (
-                      <div className="flex animate-pulse items-center space-x-2">
-                        <IconPuzzle size={20} />
+                      <div className="flex animate-ping items-center space-x-2">
+                        <IconPuzzle stroke={1.5} size={20} />
 
                         <div>Using {toolInUse}...</div>
                       </div>
@@ -404,7 +410,7 @@ export const Message: FC<MessageProps> = ({
         </div>
 
         {fileItems.length > 0 && (
-          <div className="border-primary mt-6 border-t pt-4 font-bold">
+          <div className="border-primary mt-6 border-t pt-4 font-semibold">
             {!viewSources ? (
               <div
                 className="flex cursor-pointer items-center text-lg hover:opacity-50"
@@ -457,7 +463,9 @@ export const Message: FC<MessageProps> = ({
                             }}
                           >
                             <div className="text-sm font-normal">
-                              <span className="mr-1 text-lg font-bold">-</span>{" "}
+                              <span className="mr-1 text-lg font-semibold">
+                                -
+                              </span>{" "}
                               {fileItem.content.substring(0, 200)}...
                             </div>
                           </div>

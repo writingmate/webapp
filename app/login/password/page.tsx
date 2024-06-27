@@ -20,7 +20,7 @@ export default function ChangePasswordPage() {
         setLoading(false)
       }
     })()
-  }, [])
+  }, [router])
 
   if (loading) {
     return null

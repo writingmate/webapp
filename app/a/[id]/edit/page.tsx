@@ -1,0 +1,325 @@
+"use client"
+import { SidebarUpdateItem } from "@/components/sidebar2/items/all/sidebar-update-item"
+import React, { useContext, useEffect, useState } from "react"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { ASSISTANT_DESCRIPTION_MAX, ASSISTANT_NAME_MAX } from "@/db/limits"
+import { Tables } from "@/supabase/types"
+import profile from "react-syntax-highlighter/dist/esm/languages/hljs/profile"
+import ImagePicker from "@/components/ui/image-picker"
+import { ChatSettingsForm } from "@/components/ui/chat-settings-form"
+import { AssistantRetrievalSelect } from "@/components/sidebar2/items/assistants/assistant-retrieval-select"
+import { AssistantToolSelect } from "@/components/sidebar2/items/assistants/assistant-tool-select"
+import { getAssistantById } from "@/db/assistants"
+import { ChatSettings, LLMID } from "@/types"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import { parseIdFromSlug } from "@/db/lib/slugify"
+
+export default function EditAssistantPage({
+  params: { id }
+}: {
+  params: { id: string }
+}) {
+  const [assistant, setAssistant] = useState<Tables<"assistants"> | null>()
+  const [sharing, setSharing] = useState<"public" | "private">("private" as any)
+  const [name, setName] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const [description, setDescription] = useState("")
+  const [assistantChatSettings, setAssistantChatSettings] =
+    useState<ChatSettings | null>()
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imageLink, setImageLink] = useState("")
+
+  useEffect(() => {
+    if (!id) return
+    getAssistantById(parseIdFromSlug(id)).then(assistant => {
+      setAssistant(assistant)
+      setName(assistant.name)
+      setDescription(assistant.description)
+      setSharing(assistant.sharing as any)
+      setAssistantChatSettings({
+        includeProfileContext: assistant.include_profile_context,
+        includeWorkspaceInstructions: assistant.include_workspace_instructions,
+        contextLength: assistant.context_length,
+        model: assistant.model as any,
+        prompt: assistant.prompt,
+        temperature: assistant.temperature,
+        embeddingsProvider: assistant.embeddings_provider as any
+      })
+    })
+  }, [id])
+
+  const handleFileSelect = (
+    file: Tables<"files">,
+    setSelectedAssistantFiles: React.Dispatch<
+      React.SetStateAction<Tables<"files">[]>
+    >
+  ) => {
+    setSelectedAssistantFiles(prevState => {
+      const isFileAlreadySelected = prevState.find(
+        selectedFile => selectedFile.id === file.id
+      )
+
+      if (isFileAlreadySelected) {
+        return prevState.filter(selectedFile => selectedFile.id !== file.id)
+      } else {
+        return [...prevState, file]
+      }
+    })
+  }
+
+  const handleCollectionSelect = (
+    collection: Tables<"collections">,
+    setSelectedAssistantCollections: React.Dispatch<
+      React.SetStateAction<Tables<"collections">[]>
+    >
+  ) => {
+    setSelectedAssistantCollections(prevState => {
+      const isCollectionAlreadySelected = prevState.find(
+        selectedCollection => selectedCollection.id === collection.id
+      )
+
+      if (isCollectionAlreadySelected) {
+        return prevState.filter(
+          selectedCollection => selectedCollection.id !== collection.id
+        )
+      } else {
+        return [...prevState, collection]
+      }
+    })
+  }
+
+  const handleToolSelect = (
+    tool: Tables<"tools">,
+    setSelectedAssistantTools: React.Dispatch<
+      React.SetStateAction<Tables<"tools">[]>
+    >
+  ) => {
+    setSelectedAssistantTools(prevState => {
+      const isToolAlreadySelected = prevState.find(
+        selectedTool => selectedTool.id === tool.id
+      )
+
+      if (isToolAlreadySelected) {
+        return prevState.filter(selectedTool => selectedTool.id !== tool.id)
+      } else {
+        return [...prevState, tool]
+      }
+    })
+  }
+
+  if (!profile) return null
+  if (!assistant) return null
+  if (!assistantChatSettings) return null
+
+  return (
+    <SidebarUpdateItem
+      isOpen={true}
+      item={assistant}
+      contentType="assistants"
+      isTyping={isTyping}
+      updateState={{
+        image: selectedImage,
+        user_id: assistant.user_id,
+        name,
+        description,
+        include_profile_context: assistantChatSettings.includeProfileContext,
+        include_workspace_instructions:
+          assistantChatSettings.includeWorkspaceInstructions,
+        context_length: assistantChatSettings.contextLength,
+        model: assistantChatSettings.model,
+        image_path: assistant.image_path,
+        prompt: assistantChatSettings.prompt,
+        temperature: assistantChatSettings.temperature,
+        sharing
+      }}
+      renderInputs={(renderState: {
+        startingAssistantFiles: Tables<"files">[]
+        setStartingAssistantFiles: React.Dispatch<
+          React.SetStateAction<Tables<"files">[]>
+        >
+        selectedAssistantFiles: Tables<"files">[]
+        setSelectedAssistantFiles: React.Dispatch<
+          React.SetStateAction<Tables<"files">[]>
+        >
+        startingAssistantCollections: Tables<"collections">[]
+        setStartingAssistantCollections: React.Dispatch<
+          React.SetStateAction<Tables<"collections">[]>
+        >
+        selectedAssistantCollections: Tables<"collections">[]
+        setSelectedAssistantCollections: React.Dispatch<
+          React.SetStateAction<Tables<"collections">[]>
+        >
+        startingAssistantTools: Tables<"tools">[]
+        setStartingAssistantTools: React.Dispatch<
+          React.SetStateAction<Tables<"tools">[]>
+        >
+        selectedAssistantTools: Tables<"tools">[]
+        setSelectedAssistantTools: React.Dispatch<
+          React.SetStateAction<Tables<"tools">[]>
+        >
+      }) => (
+        <>
+          <div className="space-y-1">
+            <Label>Name</Label>
+
+            <Input
+              placeholder="Assistant name..."
+              value={name}
+              onChange={e => setName(e.target.value)}
+              maxLength={ASSISTANT_NAME_MAX}
+            />
+          </div>
+
+          <div className="space-y-1 pt-2">
+            <Label>Description</Label>
+
+            <Input
+              placeholder="Assistant description..."
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              maxLength={ASSISTANT_DESCRIPTION_MAX}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label>Image</Label>
+
+            <ImagePicker
+              src={imageLink}
+              image={selectedImage}
+              onSrcChange={setImageLink}
+              onImageChange={setSelectedImage}
+              width={100}
+              height={100}
+            />
+          </div>
+
+          <ChatSettingsForm
+            chatSettings={assistantChatSettings as any}
+            onChangeChatSettings={setAssistantChatSettings}
+            useAdvancedDropdown={true}
+          />
+
+          <div className="space-y-1 pt-2">
+            <Label>Files & Collections</Label>
+
+            <AssistantRetrievalSelect
+              selectedAssistantRetrievalItems={
+                [
+                  ...renderState.selectedAssistantFiles,
+                  ...renderState.selectedAssistantCollections
+                ].length === 0
+                  ? [
+                      ...renderState.startingAssistantFiles,
+                      ...renderState.startingAssistantCollections
+                    ]
+                  : [
+                      ...renderState.startingAssistantFiles.filter(
+                        startingFile =>
+                          ![
+                            ...renderState.selectedAssistantFiles,
+                            ...renderState.selectedAssistantCollections
+                          ].some(
+                            selectedFile => selectedFile.id === startingFile.id
+                          )
+                      ),
+                      ...renderState.selectedAssistantFiles.filter(
+                        selectedFile =>
+                          !renderState.startingAssistantFiles.some(
+                            startingFile => startingFile.id === selectedFile.id
+                          )
+                      ),
+                      ...renderState.startingAssistantCollections.filter(
+                        startingCollection =>
+                          ![
+                            ...renderState.selectedAssistantFiles,
+                            ...renderState.selectedAssistantCollections
+                          ].some(
+                            selectedCollection =>
+                              selectedCollection.id === startingCollection.id
+                          )
+                      ),
+                      ...renderState.selectedAssistantCollections.filter(
+                        selectedCollection =>
+                          !renderState.startingAssistantCollections.some(
+                            startingCollection =>
+                              startingCollection.id === selectedCollection.id
+                          )
+                      )
+                    ]
+              }
+              onAssistantRetrievalItemsSelect={item =>
+                "type" in item
+                  ? handleFileSelect(
+                      item,
+                      renderState.setSelectedAssistantFiles
+                    )
+                  : handleCollectionSelect(
+                      item,
+                      renderState.setSelectedAssistantCollections
+                    )
+              }
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label>Plugins</Label>
+
+            <AssistantToolSelect
+              selectedAssistantTools={
+                renderState.selectedAssistantTools.length === 0
+                  ? renderState.startingAssistantTools
+                  : [
+                      ...renderState.startingAssistantTools.filter(
+                        startingTool =>
+                          !renderState.selectedAssistantTools.some(
+                            selectedTool => selectedTool.id === startingTool.id
+                          )
+                      ),
+                      ...renderState.selectedAssistantTools.filter(
+                        selectedTool =>
+                          !renderState.startingAssistantTools.some(
+                            startingTool => startingTool.id === selectedTool.id
+                          )
+                      )
+                    ]
+              }
+              onAssistantToolsSelect={tool =>
+                handleToolSelect(tool, renderState.setSelectedAssistantTools)
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Sharing</Label>
+
+            <Select
+              value={sharing}
+              onValueChange={value => setSharing(value as any)}
+            >
+              <SelectTrigger>
+                {sharing === "public" ? "Public" : "Private"}
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={"public"}>
+                  <SelectValue>Public</SelectValue>
+                </SelectItem>
+                <SelectItem value={"private"}>
+                  <SelectValue>Private</SelectValue>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
+    >
+      <></>
+    </SidebarUpdateItem>
+  )
+}

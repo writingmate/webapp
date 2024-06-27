@@ -1,6 +1,6 @@
 begin;
 alter table public.messages
-    add column word_count integer default 0;
+    add column if not exists word_count integer default 0;
 CREATE OR REPLACE FUNCTION calculate_word_count()
     RETURNS TRIGGER AS
 $$
@@ -10,6 +10,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+drop trigger if exists set_message_word_count on public.messages;
 CREATE TRIGGER set_message_word_count
     BEFORE INSERT OR UPDATE
     ON public.messages

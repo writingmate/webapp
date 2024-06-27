@@ -1,11 +1,12 @@
 import { supabase } from "@/lib/supabase/browser-client"
-import { TablesInsert, TablesUpdate } from "@/supabase/types"
+import { Tables, TablesInsert, TablesUpdate } from "@/supabase/types"
+import { SupabaseClient } from "@supabase/supabase-js"
 
 export const getPromptById = async (promptId: string) => {
   const { data: prompt, error } = await supabase
     .from("prompts")
-    .select("*")
-    .eq("id", promptId)
+    .select("*, prompt_category(id, name)")
+    .eq("hashid", promptId)
     .single()
 
   if (!prompt) {
@@ -15,18 +16,36 @@ export const getPromptById = async (promptId: string) => {
   return prompt
 }
 
-export const getPromptWorkspacesByWorkspaceId = async (workspaceId: string) => {
-  const { data: workspace, error } = await supabase
+export const getPromptWorkspacesByWorkspaceId = async (
+  workspaceId: string,
+  search?: { category?: string; query?: string },
+  client: SupabaseClient = supabase
+) => {
+  const query = client
     .from("workspaces")
     .select(
       `
       id,
       name,
-      prompts (*)
+      prompts (*, prompt_category(id, name))
     `
     )
     .eq("id", workspaceId)
-    .single()
+
+  if (search?.category) {
+    query.eq("prompts.prompt_category.name", search.category)
+  }
+
+  if (search?.query) {
+    query.or(
+      `name.ilike.%${search.query}%,description.ilike.%${search.query}%,content.ilike.%${search.query}%`,
+      {
+        referencedTable: "prompts"
+      }
+    )
+  }
+
+  const { data: workspace, error } = await query.single()
 
   if (!workspace) {
     throw new Error(error.message)
@@ -57,9 +76,10 @@ export const getPromptWorkspacesByPromptId = async (promptId: string) => {
 
 export const createPrompt = async (
   prompt: TablesInsert<"prompts">,
-  workspace_id: string
+  workspace_id: string,
+  client: SupabaseClient = supabase
 ) => {
-  const { data: createdPrompt, error } = await supabase
+  const { data: createdPrompt, error } = await client
     .from("prompts")
     .insert([prompt])
     .select("*")
@@ -69,11 +89,14 @@ export const createPrompt = async (
     throw new Error(error.message)
   }
 
-  await createPromptWorkspace({
-    user_id: createdPrompt.user_id,
-    prompt_id: createdPrompt.id,
-    workspace_id
-  })
+  await createPromptWorkspace(
+    {
+      user_id: createdPrompt.user_id,
+      prompt_id: createdPrompt.id,
+      workspace_id
+    },
+    client
+  )
 
   return createdPrompt
 }
@@ -102,12 +125,15 @@ export const createPrompts = async (
   return createdPrompts
 }
 
-export const createPromptWorkspace = async (item: {
-  user_id: string
-  prompt_id: string
-  workspace_id: string
-}) => {
-  const { data: createdPromptWorkspace, error } = await supabase
+export const createPromptWorkspace = async (
+  item: {
+    user_id: string
+    prompt_id: string
+    workspace_id: string
+  },
+  client: SupabaseClient = supabase
+) => {
+  const { data: createdPromptWorkspace, error } = await client
     .from("prompt_workspaces")
     .insert([item])
     .select("*")
@@ -151,8 +177,11 @@ export const updatePrompt = async (
   return updatedPrompt
 }
 
-export const deletePrompt = async (promptId: string) => {
-  const { error } = await supabase.from("prompts").delete().eq("id", promptId)
+export const deletePrompt = async (
+  promptId: string,
+  client: SupabaseClient = supabase
+) => {
+  const { error } = await client.from("prompts").delete().eq("id", promptId)
 
   if (error) {
     throw new Error(error.message)
@@ -176,14 +205,63 @@ export const deletePromptWorkspace = async (
   return true
 }
 
-export const getPublicPrompts = async () => {
-  const { data: prompts, error } = await supabase
-    .from("prompts")
+export const getPromptCategories = async (client?: SupabaseClient) => {
+  const { data: categories, error } = await (client || supabase)
+    .from("prompt_category")
     .select("*")
-    .neq("sharing", "private")
+    .order("name")
 
   if (error) {
     throw new Error(error.message)
+  }
+
+  return categories
+}
+
+export const getPublicPrompts = async (
+  client?: SupabaseClient,
+  search?: { category?: string; query?: string }
+) => {
+  const query = (client || supabase)
+    .from("prompts")
+    .select("*, prompt_category!inner(id, name)")
+    .neq("sharing", "private")
+
+  const { data: prompts, error } = await query
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  if (search?.category && !search?.query) {
+    return prompts.filter(p =>
+      p.prompt_category.find(
+        (c: Tables<"prompt_category">) =>
+          c.name.toLowerCase() === search.category?.toLowerCase()
+      )
+    )
+  }
+
+  if (search?.query && !search?.category) {
+    return prompts.filter(
+      p =>
+        p.name.toLowerCase().includes(search.query?.toLowerCase()) ||
+        p.description.toLowerCase().includes(search.query?.toLowerCase()) ||
+        p.content.toLowerCase().includes(search.query?.toLowerCase())
+    )
+  }
+
+  if (search?.query && search?.category) {
+    return prompts.filter(
+      p =>
+        p.name.toLowerCase().includes(search.query?.toLowerCase()) ||
+        p.description.toLowerCase().includes(search.query?.toLowerCase()) ||
+        (p.content.toLowerCase().includes(search.query?.toLowerCase()) &&
+          p.prompt_category.find(
+            (c: Tables<"prompt_category">) =>
+              c.name.toLowerCase() === search.category?.toLowerCase()
+          ))
+    )
   }
 
   return prompts

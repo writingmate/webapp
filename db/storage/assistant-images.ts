@@ -55,10 +55,21 @@ export const getAssistantImageFromStorage = async (filePath: string) => {
   }
 }
 
+const CACHE: Record<string, string> = {}
+
 export const getAssistantPublicImageUrl = (filePath: string) => {
+  if (CACHE[filePath]) {
+    return CACHE[filePath]
+  }
   const { data } = supabase.storage
     .from("assistant_images")
     .getPublicUrl(filePath)
+
+  if (!data) {
+    return ""
+  }
+
+  CACHE[filePath] = data.publicUrl
 
   return data.publicUrl
 }

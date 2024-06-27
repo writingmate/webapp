@@ -116,7 +116,7 @@ export const ToolPicker: FC<ToolPickerProps> = ({}) => {
                     <IconPuzzle size={32} />
                   </div>
                   <div className="ml-3 flex flex-col">
-                    <div className="font-bold">{item.name}</div>
+                    <div className="font-semibold">{item.name}</div>
 
                     <div className="line-clamp-1 max-w-full overflow-hidden text-ellipsis opacity-60">
                       {item.description}

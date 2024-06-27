@@ -55,14 +55,14 @@ export function WebSearch({
           </Card>
         )
       })}
-      {organic.length > 4 &&
+      {organic?.length > 4 &&
         (!showAll ? (
           <a
             href={"#"}
             onClick={() => setShowAll(true)}
             className="col col-span-2 w-full text-right text-xs font-semibold underline hover:opacity-50 md:col-span-4"
           >
-            Show {organic.length - 4} more
+            Show {organic?.length - 4} more
           </a>
         ) : (
           <a

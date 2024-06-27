@@ -1,10 +1,8 @@
 import { ChatbotUIContext } from "@/context/context"
 import { createDocXFile, createFile } from "@/db/files"
-import { LLM_LIST } from "@/lib/models/llm/llm-list"
 import mammoth from "mammoth"
 import { useContext, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { ChatbotUIChatContext } from "@/context/chat"
 
 export const ACCEPTED_FILE_TYPES = [
   "text/csv",
@@ -34,14 +32,13 @@ export const useSelectFileHandler = ({
   const [isUploading, setIsUploading] = useState<boolean>(false)
 
   useEffect(() => {
+    const handleFilesToAccept = () => {
+      setFilesToAccept(
+        imagesAllowed ? `${ACCEPTED_FILE_TYPES},image/*` : ACCEPTED_FILE_TYPES
+      )
+    }
     handleFilesToAccept()
   }, [imagesAllowed])
-
-  const handleFilesToAccept = () => {
-    setFilesToAccept(
-      imagesAllowed ? `${ACCEPTED_FILE_TYPES},image/*` : ACCEPTED_FILE_TYPES
-    )
-  }
 
   const handleSelectDeviceFile = async (file: File) => {
     if (!profile || !selectedWorkspace) return

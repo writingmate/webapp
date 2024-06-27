@@ -227,7 +227,7 @@ export const ChatFilesDisplay: FC<ChatFilesDisplayProps> = ({}) => {
     combinedMessageFiles.length > 0 && (
       <div className="flex w-full items-center justify-center space-x-2">
         <Button
-          className="flex h-[32px] w-[140px] space-x-2"
+          className="flex w-[140px] space-x-2 p-2"
           onClick={() => setShowFilesDisplay(true)}
         >
           <RetrievalToggle />

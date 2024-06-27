@@ -1,8 +1,11 @@
 import { ChatbotUIContext } from "@/context/context"
 import { Tables } from "@/supabase/types"
-import { IconBooks } from "@tabler/icons-react"
-import { FC, useContext, useEffect, useRef } from "react"
+import { IconBooks, IconUpload } from "@tabler/icons-react"
+import React, { FC, useContext, useEffect, useRef } from "react"
 import { FileIcon } from "../ui/file-icon"
+import { defaultItemRenderer, Picker } from "@/components/picker/picker"
+import { Input } from "@/components/ui/input"
+import { useSelectFileHandler } from "@/components/chat/chat-hooks/use-select-file-handler"
 
 interface FilePickerProps {
   isOpen: boolean
@@ -62,6 +65,9 @@ export const FilePicker: FC<FilePickerProps> = ({
     handleOpenChange(false)
   }
 
+  const { filesToAccept, handleSelectDeviceFile, isUploading } =
+    useSelectFileHandler()
+
   const getKeyDownHandler =
     (index: number, type: "file" | "collection", item: any) =>
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -101,61 +107,58 @@ export const FilePicker: FC<FilePickerProps> = ({
       }
     }
 
+  const ref = useRef<HTMLInputElement>(null)
+
   return (
     <>
-      {isOpen && (
-        <div className="flex flex-col space-y-1 p-2 text-sm">
-          {filteredFiles.length === 0 && filteredCollections.length === 0 ? (
-            <div className="text-md flex h-14 cursor-pointer items-center justify-center italic hover:opacity-50">
-              No matching files.
-            </div>
-          ) : (
-            <>
-              {[...filteredFiles, ...filteredCollections].map((item, index) => (
-                <div
-                  key={item.id}
-                  ref={ref => {
-                    itemsRef.current[index] = ref
-                  }}
-                  tabIndex={0}
-                  className="hover:bg-accent focus:bg-accent flex cursor-pointer items-center rounded p-2 focus:outline-none"
-                  onClick={() => {
-                    if ("type" in item) {
-                      handleSelectFile(item as Tables<"files">)
-                    } else {
-                      handleSelectCollection(item)
-                    }
-                  }}
-                  onKeyDown={e =>
-                    getKeyDownHandler(
-                      index,
-                      "type" in item ? "file" : "collection",
-                      item
-                    )(e)
-                  }
-                >
-                  {"type" in item ? (
-                    <FileIcon
-                      type={(item as Tables<"files">).type}
-                      size={24}
-                      stroke={1.5}
-                    />
-                  ) : (
-                    <IconBooks size={24} stroke={1.5} />
-                  )}
-
-                  <div className="ml-3 flex flex-col">
-                    <div className="font-bold">{item.name}</div>
-                    {/*<div className="truncate text-sm opacity-80">*/}
-                    {/*  {item.description || "No description."}*/}
-                    {/*</div>*/}
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      )}
+      <Input
+        type="file"
+        accept={filesToAccept}
+        onChange={e => {
+          if (isUploading) return
+          if (e.target.files?.length) {
+            handleSelectDeviceFile(e.target.files[0])
+            handleOpenChange(false)
+          }
+        }}
+        className={"hidden"}
+        ref={ref}
+      />
+      <Picker
+        isOpen={isOpen}
+        items={[...filteredFiles, ...filteredCollections]}
+        focusItem={isFocused}
+        setIsOpen={handleOpenChange}
+        command={searchQuery}
+        iconRenderer={item => {
+          if ("type" in item) {
+            return (
+              <FileIcon
+                type={(item as Tables<"files">).type}
+                size={24}
+                stroke={1.5}
+              />
+            )
+          } else {
+            return <IconBooks size={24} stroke={1.5} />
+          }
+        }}
+        handleSelectItem={item => {
+          if ("type" in item) {
+            handleSelectFile(item as Tables<"files">)
+          } else {
+            handleSelectCollection(item)
+          }
+        }}
+        actions={[
+          {
+            icon: <IconUpload size={20} stroke={1.5} />,
+            label: "Upload file",
+            description: "Upload a file from your computer",
+            onClick: () => ref.current?.click()
+          }
+        ]}
+      />
     </>
   )
 }

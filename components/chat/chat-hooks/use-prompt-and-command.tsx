@@ -7,9 +7,11 @@ import { Tables } from "@/supabase/types"
 import { LLMID } from "@/types"
 import { useContext } from "react"
 import { ChatbotUIChatContext } from "@/context/chat"
+import { useRouter } from "next/navigation"
 
 export const usePromptAndCommand = () => {
   const {
+    selectedWorkspace,
     chatFiles,
     newMessageFiles,
     setNewMessageFiles,
@@ -29,6 +31,8 @@ export const usePromptAndCommand = () => {
     setShowPromptVariables,
     profile
   } = useContext(ChatbotUIContext)
+
+  const router = useRouter()
 
   const {
     userInput,

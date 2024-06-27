@@ -34,7 +34,7 @@ export function ModelDetails({
     value: string | JSX.Element
   }) {
     return (
-      <div className={"flex h-[36px] grow items-center"}>
+      <div className={"flex grow items-center p-2"}>
         <div className={"w-2/5 py-2 font-semibold"}>{label}</div>
         <div className={"w-3/5 overflow-hidden py-2"}>{value}</div>
       </div>

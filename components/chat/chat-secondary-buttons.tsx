@@ -20,7 +20,7 @@ export const ChatSecondaryButtons: FC<ChatSecondaryButtonsProps> = ({}) => {
             delayDuration={200}
             display={
               <div>
-                <div className="text-xl font-bold">Chat Info</div>
+                <div className="text-xl font-semibold">Chat Info</div>
 
                 <div className="mx-auto mt-2 max-w-xs space-y-2 sm:max-w-sm md:max-w-md lg:max-w-lg">
                   <div>Model: {selectedChat.model}</div>

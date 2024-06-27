@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Label } from "../ui/label"
 import { TextareaAutosize } from "../ui/textarea-autosize"
 import { usePromptAndCommand } from "./chat-hooks/use-prompt-and-command"
+import { getPublicPrompts } from "@/db/prompts"
+import { Picker } from "@/components/picker/picker"
 
 interface PromptPickerProps {}
 
@@ -25,12 +27,12 @@ export const PromptPicker: FC<PromptPickerProps> = ({}) => {
   const { handleSelectPrompt, handleSelectPromptWithVariables } =
     usePromptAndCommand()
 
-  const itemsRef = useRef<(HTMLDivElement | null)[]>([])
+  const [publicPrompts, setPublicPrompts] = useState<Tables<"prompts">[]>([])
 
   useEffect(() => {
-    if (focusPrompt && itemsRef.current[0]) {
-      itemsRef.current[0].focus()
-    }
+    getPublicPrompts().then(prompts => {
+      setPublicPrompts(prompts)
+    })
   }, [focusPrompt])
 
   const [isTyping, setIsTyping] = useState(false)
@@ -39,41 +41,6 @@ export const PromptPicker: FC<PromptPickerProps> = ({}) => {
     prompt.name.toLowerCase().includes(slashCommand.toLowerCase())
   )
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setIsPromptPickerOpen(isOpen)
-  }
-
-  const getKeyDownHandler =
-    (index: number) => (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "Backspace") {
-        e.preventDefault()
-        handleOpenChange(false)
-      } else if (e.key === "Enter") {
-        e.preventDefault()
-        handleSelectPromptWithVariables(filteredPrompts[index])
-      } else if (
-        (e.key === "Tab" || e.key === "ArrowDown") &&
-        !e.shiftKey &&
-        index === filteredPrompts.length - 1
-      ) {
-        e.preventDefault()
-        itemsRef.current[0]?.focus()
-      } else if (e.key === "ArrowUp" && !e.shiftKey && index === 0) {
-        // go to last element if arrow up is pressed on first element
-        e.preventDefault()
-        itemsRef.current[itemsRef.current.length - 1]?.focus()
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault()
-        const prevIndex =
-          index - 1 >= 0 ? index - 1 : itemsRef.current.length - 1
-        itemsRef.current[prevIndex]?.focus()
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault()
-        const nextIndex = index + 1 < itemsRef.current.length ? index + 1 : 0
-        itemsRef.current[nextIndex]?.focus()
-      }
-    }
-
   const handleSubmitPromptVariables = () => {
     const newPromptContent = promptVariables.reduce(
       (prevContent, variable) =>
@@ -81,8 +48,9 @@ export const PromptPicker: FC<PromptPickerProps> = ({}) => {
           new RegExp(`\\{\\{${variable.name}\\}\\}`, "g"),
           variable.value
         ),
-      prompts.find(prompt => prompt.id === promptVariables[0].promptId)
-        ?.content || ""
+      [...publicPrompts, ...prompts].find(
+        prompt => prompt.id === promptVariables[0].promptId
+      )?.content || ""
     )
 
     const newPrompt: any = {
@@ -91,7 +59,7 @@ export const PromptPicker: FC<PromptPickerProps> = ({}) => {
     }
 
     handleSelectPrompt(newPrompt)
-    handleOpenChange(false)
+    setIsPromptPickerOpen(false)
     setShowPromptVariables(false)
     setPromptVariables([])
   }
@@ -155,34 +123,14 @@ export const PromptPicker: FC<PromptPickerProps> = ({}) => {
           </div>
         </DialogContent>
       </Dialog>
-      {isPromptPickerOpen && (
-        <div className="flex flex-col space-y-1 p-2 text-sm">
-          {filteredPrompts.length === 0 ? (
-            <div className="text-md flex h-14 cursor-pointer items-center justify-center italic hover:opacity-50">
-              No matching prompts.
-            </div>
-          ) : (
-            filteredPrompts.map((prompt, index) => (
-              <div
-                key={prompt.id}
-                ref={ref => {
-                  itemsRef.current[index] = ref
-                }}
-                tabIndex={0}
-                className="hover:bg-accent focus:bg-accent flex cursor-pointer flex-col rounded p-2 focus:outline-none"
-                onClick={() => handleSelectPromptWithVariables(prompt)}
-                onKeyDown={getKeyDownHandler(index)}
-              >
-                <div className="font-bold">{prompt.name}</div>
-
-                <div className="truncate text-sm opacity-80">
-                  {prompt.content}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      <Picker
+        items={filteredPrompts}
+        focusItem={focusPrompt}
+        isOpen={isPromptPickerOpen}
+        setIsOpen={setIsPromptPickerOpen}
+        command={slashCommand}
+        handleSelectItem={handleSelectPromptWithVariables}
+      />
     </>
   )
 }

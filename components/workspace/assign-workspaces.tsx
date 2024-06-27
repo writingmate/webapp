@@ -152,7 +152,11 @@ const WorkspaceItem: FC<WorkspaceItemProps> = ({
       </div>
 
       {selected && (
-        <IconCircleCheckFilled size={20} className="min-w-[30px] flex-none" />
+        <IconCircleCheckFilled
+          size={20}
+          stroke={1.5}
+          className="min-w-[30px] flex-none"
+        />
       )}
     </div>
   )

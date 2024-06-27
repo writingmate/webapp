@@ -1,16 +1,16 @@
 import { FilePreview } from "@/components/ui/file-preview"
 import { forwardRef, HTMLAttributes, ImgHTMLAttributes, useState } from "react"
-import Image, { ImageProps } from "next/image"
 
 const ImageWithPreview = forwardRef<
   HTMLImageElement,
   ImgHTMLAttributes<HTMLImageElement>
->(({ src, ...props }) => {
+>(({ src, ...props }, ref) => {
   const [showImagePreview, setShowImagePreview] = useState(false)
 
   return (
     <>
       <img
+        ref={ref}
         onClick={() => setShowImagePreview(true)}
         className="w-1/2 rounded-md"
         src={src}

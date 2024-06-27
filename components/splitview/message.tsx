@@ -75,7 +75,7 @@ export const Message: FC<MessageProps> = ({
 
   const editInputRef = useRef<HTMLTextAreaElement>(null)
 
-  const [isHovering, setIsHovering] = useState(false)
+  const [isHovering] = useState(false)
   const [editedMessage, setEditedMessage] = useState(message.content)
 
   const [showImagePreview, setShowImagePreview] = useState(false)
@@ -133,7 +133,7 @@ export const Message: FC<MessageProps> = ({
       input.focus()
       input.setSelectionRange(input.value.length, input.value.length)
     }
-  }, [isEditing])
+  }, [isEditing, editInputRef, message.content])
 
   const MODEL_DATA = [
     ...models.map(model => ({
@@ -153,9 +153,9 @@ export const Message: FC<MessageProps> = ({
     image => image.assistantId === message.assistant_id
   )?.base64
 
-  const selectedAssistantImage = assistantImages.find(
-    image => image.path === selectedAssistant?.image_path
-  )?.base64
+  // const selectedAssistantImage = assistantImages.find(
+  //   image => image.path === selectedAssistant?.image_path
+  // )?.base64
 
   const fileAccumulator: Record<
     string,
@@ -377,7 +377,7 @@ export const Message: FC<MessageProps> = ({
           </div>
 
           {fileItems.length > 0 && (
-            <div className="border-primary mt-6 border-t pt-4 font-bold">
+            <div className="border-primary mt-6 border-t pt-4 font-semibold">
               {!viewSources ? (
                 <div
                   className="flex cursor-pointer items-center text-lg hover:opacity-50"
@@ -430,7 +430,7 @@ export const Message: FC<MessageProps> = ({
                               }}
                             >
                               <div className="text-sm font-normal">
-                                <span className="mr-1 text-lg font-bold">
+                                <span className="mr-1 text-lg font-semibold">
                                   -
                                 </span>{" "}
                                 {fileItem.content.substring(0, 200)}...
@@ -513,7 +513,9 @@ export const Message: FC<MessageProps> = ({
         )}
       </div>
     ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
+      MODEL_DATA,
       message,
       isGenerating,
       fileItems,

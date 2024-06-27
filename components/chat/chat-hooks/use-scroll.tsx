@@ -27,12 +27,14 @@ export const useScroll = () => {
     if (!isGenerating && userScrolled) {
       setUserScrolled(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGenerating])
 
   useEffect(() => {
     if (isGenerating && !userScrolled) {
       scrollToBottom()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatMessages])
 
   const handleScroll: UIEventHandler<HTMLDivElement> = useCallback(e => {

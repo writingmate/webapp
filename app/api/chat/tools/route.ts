@@ -50,7 +50,8 @@ function getProviderCaller(model: string, profile: Tables<"profiles">) {
       new OpenAI({
         apiKey: process.env.OPENAI_API_KEY || "",
         organization: process.env.OPENAI_ORGANIZATION_ID,
-        baseURL: process.env.OPENAI_BASE_URL || undefined
+        baseURL: process.env.OPENAI_BASE_URL || undefined,
+        maxRetries: 5
       })
     )
   }
@@ -60,7 +61,8 @@ function getProviderCaller(model: string, profile: Tables<"profiles">) {
     return new OpenAIFunctionCaller(
       new OpenAI({
         apiKey: profile.mistral_api_key || "",
-        baseURL: "https://api.mistral.ai/v1"
+        baseURL: "https://api.mistral.ai/v1",
+        maxRetries: 5
       })
     )
   }
@@ -70,7 +72,8 @@ function getProviderCaller(model: string, profile: Tables<"profiles">) {
     return new AnthropicFunctionCaller(
       new Anthropic({
         apiKey: profile.anthropic_api_key || "",
-        baseURL: process.env.ANTHROPIC_BASE_URL || undefined
+        baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
+        maxRetries: 5
       })
     )
   }
@@ -80,7 +83,8 @@ function getProviderCaller(model: string, profile: Tables<"profiles">) {
     return new GroqFunctionCaller(
       new OpenAI({
         apiKey: profile.groq_api_key || "",
-        baseURL: "https://api.groq.com/openai/v1"
+        baseURL: "https://api.groq.com/openai/v1",
+        maxRetries: 5
       })
     )
   }

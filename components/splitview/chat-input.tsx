@@ -13,14 +13,11 @@ import {
   IconSend,
   IconX
 } from "@tabler/icons-react"
-import Image from "next/image"
 import { FC, useContext, useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { Input } from "../ui/input"
 import { TextareaAutosize } from "../ui/textarea-autosize"
 import { toast } from "sonner"
 import { useSelectFileHandler } from "@/components/splitview/splitview-hooks/use-select-file-handler"
-import { ToolSelect } from "@/components/tools/tool-select"
 import { ChatFilesDisplay } from "@/components/chat/chat-files-display"
 import { PromptCatalog } from "@/components/splitview/prompt-catalog"
 
@@ -45,8 +42,6 @@ export const ChatInput: FC<ChatInputProps> = ({
   toolsAllowed,
   handleReset
 }) => {
-  const { t } = useTranslation()
-
   // useHotkey("l", () => {
   //   handleFocusChatInput()
   // })
@@ -188,7 +183,7 @@ export const ChatInput: FC<ChatInputProps> = ({
           {/*  <div className="bg-secondary flex items-center justify-between space-x-2 p-2 pl-4 pr-3">*/}
           {/*    <div className={"flex items-center space-x-2"}>*/}
           {/*      <AssistantIcon assistant={selectedAssistant} size={24}/>*/}
-          {/*      <div className="text-sm font-bold">*/}
+          {/*      <div className="text-sm font-semibold">*/}
           {/*        Talking to {selectedAssistant.name}*/}
           {/*      </div>*/}
           {/*    </div>*/}
@@ -237,10 +232,10 @@ export const ChatInput: FC<ChatInputProps> = ({
                 "ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring text-md flex w-full resize-none rounded-md border-none bg-transparent px-14 py-2 pl-20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
                 toolsAllowed && "pl-32"
               )}
-              placeholder={t(
+              placeholder={
                 `Ask anything. `
                 // Type "${profile?.assistant_command}" for assistants, "${profile?.prompt_command}" for prompts, "${profile?.files_command}" for files, and "${profile?.tools_command}" for plugins.`
-              )}
+              }
               onValueChange={setUserInput}
               value={userInput}
               minRows={1}

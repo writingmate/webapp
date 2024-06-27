@@ -88,7 +88,7 @@ export const MessageHistoryPicker: FC<MessageHistoryPickerProps> = ({}) => {
                 }
                 onKeyDown={getKeyDownHandler(index)}
               >
-                <div className="font-bold">{prompt.name}</div>
+                <div className="font-semibold">{prompt.name}</div>
 
                 <div className="truncate text-sm opacity-80">
                   {message.message.content}

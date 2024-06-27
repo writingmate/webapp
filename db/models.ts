@@ -1,5 +1,8 @@
 import { supabase } from "@/lib/supabase/browser-client"
 import { TablesInsert, TablesUpdate } from "@/supabase/types"
+import { LLM, LLMID, ModelProvider } from "@/types"
+import { LLM_LIST } from "@/lib/models/llm/llm-list"
+import { fetchOpenRouterModels } from "@/lib/models/fetch-models"
 
 export const getModelById = async (modelId: string) => {
   const { data: model, error } = await supabase
@@ -187,4 +190,10 @@ export const getMostRecentModels = async (limit: number = 3) => {
   }
 
   return models
+}
+
+export const getAllModels = async () => {
+  const modelData = [...LLM_LIST, ...(await fetchOpenRouterModels())]
+
+  return modelData as LLM[]
 }

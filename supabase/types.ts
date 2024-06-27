@@ -1280,23 +1280,26 @@ export interface Database {
       prompt_category: {
         Row: {
           created_at: string | null
+          description: string | null
           id: string
           name: string
-          slug: string | null
+          page_title: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           id?: string
           name: string
-          slug?: string | null
+          page_title?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           id?: string
           name?: string
-          slug?: string | null
+          page_title?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1358,7 +1361,6 @@ export interface Database {
           id: string
           name: string
           sharing: string
-          slug: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1372,7 +1374,6 @@ export interface Database {
           id?: string
           name: string
           sharing?: string
-          slug?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1386,7 +1387,6 @@ export interface Database {
           id?: string
           name?: string
           sharing?: string
-          slug?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1733,12 +1733,6 @@ export interface Database {
           p_name: string
         }
         Returns: boolean
-      }
-      slugify: {
-        Args: {
-          value: string
-        }
-        Returns: string
       }
       unaccent: {
         Args: {

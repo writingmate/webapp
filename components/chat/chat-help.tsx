@@ -52,7 +52,7 @@ export const ChatHelp: FC<ChatHelpProps> = ({}) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <IconHelpCircle size={24} />
+              <IconHelpCircle size={24} stroke={1.5} />
             </Link>
           </div>
         </DropdownMenuLabel>
